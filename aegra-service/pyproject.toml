@@ -1,0 +1,26 @@
+[project]
+name = "aegra-react-agent-sample"
+version = "0.1.0"
+description = "Sample Aegra backend using a LangGraph ReAct-style agent"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "aegra-cli>=0.1.0",
+  "langchain>=0.3.0",
+  "langchain-openai>=0.3.0",
+  "langgraph>=1.0.3",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=8.3.0",
+  "pytest-asyncio>=0.24.0",
+  "ruff>=0.7.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100

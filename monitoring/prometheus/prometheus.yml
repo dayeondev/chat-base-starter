@@ -1,0 +1,39 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'chat-base-starter'
+    env: 'dev'
+
+scrape_configs:
+  # API Gateway
+  - job_name: 'api-gateway'
+    static_configs:
+      - targets: ['chat-base-starter-api-gateway:8080']
+        labels:
+          service: 'api-gateway'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 15s
+
+  # User Service
+  - job_name: 'user-service'
+    static_configs:
+      - targets: ['chat-base-starter-user-service:8081']
+        labels:
+          service: 'user-service'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 15s
+
+  # Disclosure Service
+  - job_name: 'disclosure-service'
+    static_configs:
+      - targets: ['chat-base-starter-disclosure-service:8000']
+        labels:
+          service: 'disclosure-service'
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']

@@ -1,0 +1,62 @@
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        # User Service Routes
+        - id: user-service-register
+          uri: ${USER_SERVICE_URL:http://user-service:8081}
+          predicates:
+            - Path=/api/users/register, /api/users/login
+          filters:
+            - StripPrefix=0
+            - RequestId
+
+        - id: user-service
+          uri: ${USER_SERVICE_URL:http://user-service:8081}
+          predicates:
+            - Path=/api/users/**
+          filters:
+            - StripPrefix=0
+            - RequestId
+            - JwtAuthentication
+
+        # Disclosure Service Routes
+        - id: disclosure-service
+          uri: ${DISCLOSURE_SERVICE_URL:http://disclosure-service:8000}
+          predicates:
+            - Path=/api/companies/**, /api/disclosures/**
+          filters:
+            - RewritePath=/api/(?<segment>.*), /api/${segment}
+            - RequestId
+
+        - id: chat-service
+          uri: ${CHAT_SERVICE_URL:http://chat-service:8000}
+          predicates:
+            - Path=/api/chat/**
+          filters:
+            - StripPrefix=0
+            - RequestId
+            - JwtAuthentication
+
+server:
+  port: 8080
+
+app:
+  jwt:
+    secret: ${APP_JWT_SECRET:change-me-jwt-secret-for-local-dev-only-2026-change-me-jwt-secret-for-local-dev-only-2026}
+  gateway:
+    secret: ${APP_GATEWAY_SECRET:change-me-gateway-secret-for-local-dev-only-2026}
+  cors:
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:3003}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,gateway
+  metrics:
+    export:
+      prometheus:
+        enabled: true
