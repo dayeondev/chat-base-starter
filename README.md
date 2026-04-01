@@ -17,6 +17,22 @@ frontend (React/Vite, :3003)
 
 The browser talks only to the gateway. `chat-service` owns conversation metadata and user ownership checks. `aegra-service` stays internal and handles agent execution.
 
+```mermaid
+flowchart LR
+    frontend[frontend\nReact / Vite]
+    gateway[api-gateway\nSpring Cloud Gateway]
+    user[user-service\nSpring Boot]
+    disclosure[disclosure-service\nFastAPI sample domain]
+    chat[chat-service\nFastAPI chat relay]
+    aegra[aegra-service\nAegra / LangGraph]
+
+    frontend --> gateway
+    gateway --> user
+    gateway --> disclosure
+    gateway --> chat
+    chat --> aegra
+```
+
 ## Service-Level Environment Files
 
 Each service keeps its own `.env.example` next to the code.

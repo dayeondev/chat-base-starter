@@ -17,6 +17,22 @@ frontend (React/Vite, :3003)
 
 브라우저는 gateway만 호출합니다. `chat-service`는 conversation metadata와 사용자 소유권 검사를 담당하고, `aegra-service`는 내부 실행 엔진 역할만 맡습니다.
 
+```mermaid
+flowchart LR
+    frontend[frontend\nReact / Vite]
+    gateway[api-gateway\nSpring Cloud Gateway]
+    user[user-service\nSpring Boot]
+    disclosure[disclosure-service\nFastAPI sample domain]
+    chat[chat-service\nFastAPI chat relay]
+    aegra[aegra-service\nAegra / LangGraph]
+
+    frontend --> gateway
+    gateway --> user
+    gateway --> disclosure
+    gateway --> chat
+    chat --> aegra
+```
+
 ## 서비스별 환경 파일
 
 각 서비스는 코드 옆에 자체 `.env.example` 파일을 둡니다.
