@@ -13,15 +13,26 @@ class AegraClient:
     def __init__(self) -> None:
         self.base_url = os.getenv("AEGRA_API_URL", "http://aegra-service:2026")
         self.assistant_id = os.getenv("AEGRA_ASSISTANT_ID", "agent")
-        self.connect_timeout_seconds = float(
-            os.getenv("AEGRA_CONNECT_TIMEOUT_SECONDS", "5")
+        self.connect_timeout_seconds = self._get_positive_float_env(
+            "AEGRA_CONNECT_TIMEOUT_SECONDS", 5.0
         )
-        self.state_timeout_seconds = float(
-            os.getenv("AEGRA_STATE_TIMEOUT_SECONDS", "60")
+        self.state_timeout_seconds = self._get_positive_float_env(
+            "AEGRA_STATE_TIMEOUT_SECONDS", 60.0
         )
         self.request_timeout = httpx.Timeout(
             self.state_timeout_seconds, connect=self.connect_timeout_seconds
         )
+
+    @staticmethod
+    def _get_positive_float_env(name: str, default: float) -> float:
+        raw = os.getenv(name, str(default))
+        try:
+            value = float(raw)
+        except ValueError as exc:
+            raise ValueError(f"{name} must be a positive number, got: {raw!r}") from exc
+        if value <= 0:
+            raise ValueError(f"{name} must be > 0, got: {value}")
+        return value
 
     async def create_thread(self, request_id: str) -> str:
         async with httpx.AsyncClient(
