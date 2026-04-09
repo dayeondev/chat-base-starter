@@ -106,6 +106,10 @@ Minimum required change:
 
 - `aegra-service/.env` -> set `OPENAI_API_KEY`
 
+Optional tuning:
+
+- `chat-service/.env` -> increase `AEGRA_STATE_TIMEOUT_SECONDS` if thread state reads time out while the agent is still busy
+
 ### 2. Start the stack
 
 ```bash

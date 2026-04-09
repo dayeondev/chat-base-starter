@@ -106,6 +106,10 @@ Python 서비스들은 여전히 하나의 Postgres 컨테이너를 공유하지
 
 - `aegra-service/.env` -> `OPENAI_API_KEY` 설정
 
+선택 조정:
+
+- `chat-service/.env` -> agent 실행이 길어 `thread state` 조회가 timeout 나면 `AEGRA_STATE_TIMEOUT_SECONDS` 값을 늘리세요
+
 ### 2. 스택 실행
 
 ```bash

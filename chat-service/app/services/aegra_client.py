@@ -13,28 +13,61 @@ class AegraClient:
     def __init__(self) -> None:
         self.base_url = os.getenv("AEGRA_API_URL", "http://aegra-service:2026")
         self.assistant_id = os.getenv("AEGRA_ASSISTANT_ID", "agent")
-        self.timeout = httpx.Timeout(60.0, connect=5.0)
+        self.connect_timeout_seconds = self._get_positive_float_env(
+            "AEGRA_CONNECT_TIMEOUT_SECONDS", 5.0
+        )
+        self.state_timeout_seconds = self._get_positive_float_env(
+            "AEGRA_STATE_TIMEOUT_SECONDS", 60.0
+        )
+        self.request_timeout = httpx.Timeout(
+            self.state_timeout_seconds, connect=self.connect_timeout_seconds
+        )
+
+    @staticmethod
+    def _get_positive_float_env(name: str, default: float) -> float:
+        raw = os.getenv(name, str(default))
+        try:
+            value = float(raw)
+        except ValueError as exc:
+            raise ValueError(f"{name} must be a positive number, got: {raw!r}") from exc
+        if value <= 0:
+            raise ValueError(f"{name} must be > 0, got: {value}")
+        return value
 
     async def create_thread(self, request_id: str) -> str:
         async with httpx.AsyncClient(
-            base_url=self.base_url, timeout=self.timeout
+            base_url=self.base_url, timeout=self.request_timeout
         ) as client:
-            response = await client.post(
-                "/threads",
-                json={"metadata": {"graph_id": self.assistant_id}},
-                headers=self._headers(request_id),
-            )
+            try:
+                response = await client.post(
+                    "/threads",
+                    json={"metadata": {"graph_id": self.assistant_id}},
+                    headers=self._headers(request_id),
+                )
+            except httpx.TimeoutException as exc:
+                raise AegraClientError(
+                    "Timed out while creating a thread in aegra-service. "
+                    f"Increase AEGRA_STATE_TIMEOUT_SECONDS if your agent setup is slow. "
+                    f"assistant_id={self.assistant_id}"
+                ) from exc
             response.raise_for_status()
             return response.json()["thread_id"]
 
     async def get_thread_state(self, thread_id: str, request_id: str) -> dict[str, Any]:
         async with httpx.AsyncClient(
-            base_url=self.base_url, timeout=self.timeout
+            base_url=self.base_url, timeout=self.request_timeout
         ) as client:
-            response = await client.get(
-                f"/threads/{thread_id}/state",
-                headers=self._headers(request_id),
-            )
+            try:
+                response = await client.get(
+                    f"/threads/{thread_id}/state",
+                    headers=self._headers(request_id),
+                )
+            except httpx.TimeoutException as exc:
+                raise AegraClientError(
+                    "Timed out while fetching thread state from aegra-service. "
+                    f"Increase AEGRA_STATE_TIMEOUT_SECONDS if your agent runs are slow. "
+                    f"thread_id={thread_id}"
+                ) from exc
             response.raise_for_status()
             return response.json()
 
